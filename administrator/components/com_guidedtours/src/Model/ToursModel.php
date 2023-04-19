@@ -13,6 +13,7 @@ namespace Joomla\Component\Guidedtours\Administrator\Model;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Model\ListModel;
+use Joomla\CMS\Uri\Uri;
 use Joomla\Database\ParameterType;
 use Joomla\Registry\Registry;
 use Joomla\Utilities\ArrayHelper;
@@ -244,11 +245,24 @@ class ToursModel extends ListModel
      */
     public function getItems()
     {
+        $lang = Factory::getLanguage();
         $items = parent::getItems();
 
-        Factory::getLanguage()->load('com_guidedtours.sys', JPATH_ADMINISTRATOR);
+		$loadedLang = [];
 
         foreach ($items as $item) {
+	        $uri = new Uri($item->url);
+
+	        $extension = $uri->getVar('option', false);
+
+	        if ($extension && !in_array($extension, $loadedLang))
+	        {
+		        $lang->load("$extension.sys", JPATH_ADMINISTRATOR)
+		        || $lang->load("$extension.sys", JPATH_ADMINISTRATOR . '/components/' . $extension);
+
+		        $loadedLang[] = $extension;
+	        }
+
             $item->title       = Text::_($item->title);
             $item->description = Text::_($item->description);
             $item->extensions  = (new Registry($item->extensions))->toArray();
