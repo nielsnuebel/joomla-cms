@@ -29,11 +29,16 @@ $lang = $app->getLanguage();
 
 $extension = $app->input->get('option');
 
+$firstTours = [];
 $listTours = [];
 $allTours = [];
 
 foreach ($tours as $tour) :
-    if (count(array_intersect(['*', $extension], $tour->extensions))) :
+	if (count(array_intersect([$extension], $tour->extensions))) :
+		$firstTours[] = $tour;
+	endif;
+
+    if (count(array_intersect(['*'], $tour->extensions))) :
         $listTours[] = $tour;
     endif;
 
@@ -42,15 +47,10 @@ foreach ($tours as $tour) :
     // We assume the url is the starting point
     $key = $uri->getVar('option') ?? Text::_('MOD_GUIDEDTOURS_GENERIC_TOUR');
 
-    if (!isset($allTours[$key])) :
-        $lang->load("$key.sys", JPATH_ADMINISTRATOR)
-        || $lang->load("$key.sys", JPATH_ADMINISTRATOR . '/components/' . $key);
-
-        $allTours[$key] = [];
-    endif;
-
     $allTours[$key][] = $tour;
 endforeach;
+
+$listTours = array_merge($firstTours, $listTours);
 
 ksort($allTours);
 
