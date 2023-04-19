@@ -16,6 +16,7 @@ use Joomla\CMS\Log\Log;
 use Joomla\CMS\MVC\Model\AdminModel;
 use Joomla\CMS\Object\CMSObject;
 use Joomla\CMS\Plugin\PluginHelper;
+use Joomla\CMS\Uri\Uri;
 use Joomla\Database\ParameterType;
 use Joomla\Utilities\ArrayHelper;
 
@@ -212,11 +213,19 @@ class TourModel extends AdminModel
      */
     public function getItem($pk = null)
     {
-        Factory::getLanguage()->load('com_guidedtours.sys', JPATH_ADMINISTRATOR);
-
+        $lang = Factory::getLanguage();
         $result = parent::getItem($pk);
 
         if (!empty($result->id)) {
+	        $uri = new Uri($result->url);
+	        $extension = $uri->getVar('option', false);
+
+	        if ($extension)
+	        {
+		        $lang->load("$extension.sys", JPATH_ADMINISTRATOR)
+		        || $lang->load("$extension.sys", JPATH_ADMINISTRATOR . '/components/' . $extension);
+	        }
+
             $result->title_translation       = Text::_($result->title);
             $result->description_translation = Text::_($result->description);
         }
